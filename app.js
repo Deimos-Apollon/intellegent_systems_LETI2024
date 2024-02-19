@@ -14,11 +14,11 @@
     socket(agent, teamName, VERSION) 
     socket(enemy, enemyTeamName, VERSION) 
 
-    let time = 1000
-
     function sleep(ms) {
         return new Promise(resolve => setTimeout(resolve, ms));
     }
+    let time = 1000
+
 
     // function check_for_errors(true_coords, comp_coords) {
     //     x_t = true_coords[0]
@@ -38,8 +38,10 @@
     agent.is_player = true;
 
     async function moveCircle(){
-        agent.socketSend("move", "-15 -10")
-        enemy.socketSend("move", "-15 -10")
+        agent.socketSend("move", "-15 10")
+        await sleep(1000)
+        enemy.socketSend("move", "-15 10")
+        await sleep(1000)
 
         while(true){
             agent.socketSend("turn", `-15`)
