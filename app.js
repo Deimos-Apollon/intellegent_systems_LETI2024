@@ -20,33 +20,31 @@
         return new Promise(resolve => setTimeout(resolve, ms));
     }
 
-    function check_for_errors(true_coords, comp_coords) {
-        x_t = true_coords[0]
-        y_t = true_coords[1]
-        x_p = comp_coords[0]
-        y_p = comp_coords[1]
+    // function check_for_errors(true_coords, comp_coords) {
+    //     x_t = true_coords[0]
+    //     y_t = true_coords[1]
+    //     x_p = comp_coords[0]
+    //     y_p = comp_coords[1]
 
-        if (Math.abs(x_t - x_p) > 10) {
-            return false
-        }
-        if (Math.abs(y_t - y_p) > 10) {
-            return false
-        }
-        return true
-    }
+    //     if (Math.abs(x_t - x_p) > 10) {
+    //         return false
+    //     }
+    //     if (Math.abs(y_t - y_p) > 10) {
+    //         return false
+    //     }
+    //     return true
+    // }
 
+    agent.is_player = true;
 
     async function moveCircle(){
-        // agent.socketSend("move", `${true_agent_coords[i][0]} ${-1 * true_agent_coords[i][1]}`) // Размещение игрока на поле
         agent.socketSend("move", "-15 -10")
         enemy.socketSend("move", "-15 -10")
 
         while(true){
             agent.socketSend("turn", `-15`)
             await sleep(time)
-            // agent.socketSend("dash", '100')
-            // agent.socketSend("dash", '100')
-            // await sleep(time)
+            console.log()
         }
     }
     

@@ -58,74 +58,84 @@ class Agent {
         // console.log(p)
         if(cmd == "see") {
             // console.log(p[1])
-            let flag_coords = [], flag_dists = []
-            for (let obj of p) {
-                if (typeof(obj) !== 'object') 
-                    continue
-                let name = obj.cmd.p.join('')
-                if (name[0] !== 'f') {
-                    continue
-                }
-                let coords = flags[name]
-
-                if (flag_coords.length == 2) 
-                {
-                    let x1 = flag_coords[0].x, y1 = flag_coords[0].y
-                    let x2 = flag_coords[1].x, y2 = flag_coords[1].y
-                    let x3 = coords.x,         y3 = coords.y
-                    // Horizontal or vertical lines
-                    // if (((x1 == x2) && (x2 == x3)) || 
-                    //     ((y1 == y2) && (y2 == y3)))
-                    //     continue
-
-                    // // Three point on angled line
-                    // const eps = 0.0001
-                    // if (Math.abs((y3-y1)/(y2-y1) - (x3-x1)/(x2-x1)) < eps){
-                    //     console.log('Skipped same line', x1, x2, x3, y1, y2, y3)
-                    // continue
-                    // }
-                }                
-                if (flag_coords.length == 3) 
-                    break
-                flag_coords.push(coords)
-                flag_dists.push(obj.p[0])
-            }
-
-            if (flag_coords.length < 3) return false;
-            res = getPos3Flags(flag_coords, flag_dists)
- 
-            this.flag_coords = flag_coords 
-            this.x = res['x']
-            this.y = res['y']
-
-            for (let obj of p) {
-                if (typeof(obj) !== 'object') 
-                    continue
-                let name = obj.cmd.p.join('')
-                if (name[0] !== 'p') {
-                    continue
-                }
-                let enemy_dist = obj.p[0], enemy_angle = obj.p[1]           
-                console.log(enemy_dist, enemy_angle)
-                console.log(this.turn, this.turn_neck, this.head_angle, this.DirectionOfSpeed)
-                enemy_angle = this.DirectionOfSpeed + this.head_angle - enemy_angle 
-                let enemy_angle_rad = enemy_angle * Math.PI / 180
-
-                let x = this.x, y = this.y
-                let x_e = x + Math.cos(enemy_angle_rad) * enemy_dist
-                let y_e = y + Math.sin(enemy_angle_rad) * enemy_dist
-                console.log(x_e, y_e)
-            }   
+            this.processCmdSee(p)
         }
         if(cmd == "sense_body") {
-            this.turn = 0
-            for (let obj of p) {
-                if (obj.cmd == 'head_angle') {
-                    this.head_angle = obj.p[0]
-                }
-                if (obj.cmd == 'speed') {
-                    this.DirectionOfSpeed = obj.p[1]
-                }
+            this.processCmdSenseBody(p)
+        }
+    }
+    processCmdSee(p) {
+        let flag_coords = [], flag_dists = []
+        for (let obj of p) {
+            if (typeof(obj) !== 'object') 
+                continue
+            let name = obj.cmd.p.join('')
+            if (name[0] !== 'f') {
+                continue
+            }
+            let coords = flags[name]
+
+            if (flag_coords.length == 2) 
+            {
+                let x1 = flag_coords[0].x, y1 = flag_coords[0].y
+                let x2 = flag_coords[1].x, y2 = flag_coords[1].y
+                let x3 = coords.x,         y3 = coords.y
+                // Horizontal or vertical lines
+                // if (((x1 == x2) && (x2 == x3)) || 
+                //     ((y1 == y2) && (y2 == y3)))
+                //     continue
+
+                // // Three point on angled line
+                // const eps = 0.0001
+                // if (Math.abs((y3-y1)/(y2-y1) - (x3-x1)/(x2-x1)) < eps){
+                //     console.log('Skipped same line', x1, x2, x3, y1, y2, y3)
+                // continue
+                // }
+            }                
+            if (flag_coords.length == 3) 
+                break
+            flag_coords.push(coords)
+            flag_dists.push(obj.p[0])
+        }
+
+        if (flag_coords.length < 3) return false;
+        res = getPos3Flags(flag_coords, flag_dists)
+
+        this.flag_coords = flag_coords 
+        this.x = res['x']
+        this.y = res['y']
+        if (this.is_player)
+            console.log(`My coords: x=${this.x}, y=${this.y}`)
+        for (let obj of p) {
+            if (typeof(obj) !== 'object') 
+                continue
+            let name = obj.cmd.p.join('')
+            if (name[0] !== 'p') {
+                continue
+            }
+            let enemy_dist = obj.p[0], enemy_angle = obj.p[1]           
+
+            enemy_angle = this.DirectionOfSpeed + this.head_angle - enemy_angle 
+            let enemy_angle_rad = enemy_angle * Math.PI / 180
+
+            let x = this.x, y = this.y
+            let x_e = x + Math.cos(enemy_angle_rad) * enemy_dist
+            let y_e = y + Math.sin(enemy_angle_rad) * enemy_dist
+            if (this.is_player) {
+                console.log(`I see enemy: dist=${enemy_dist}, angle=${enemy_angle}`)
+                console.log(`Enemy position: x=${x_e}, y=${y_e}`)
+                console.log()
+            }
+        }   
+    }
+    processCmdSenseBody(p) {
+        this.turn = 0
+        for (let obj of p) {
+            if (obj.cmd == 'head_angle') {
+                this.head_angle = obj.p[0]
+            }
+            if (obj.cmd == 'speed') {
+                this.DirectionOfSpeed = obj.p[1]
             }
         }
     }
@@ -141,4 +151,6 @@ class Agent {
         }
     }
 }
+
+
 module.exports = Agent // Экспорт игрока
