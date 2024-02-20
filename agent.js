@@ -25,6 +25,7 @@ class Agent {
         })
         this.x_comp = 0;
         this.y_comp = 0;
+        this.x = 0, this.y = 0;
     }
     msgGot(msg) { // Получение сообщения
         let data = msg.toString('utf8') // ПРиведение
@@ -81,16 +82,16 @@ class Agent {
                 let x2 = flag_coords[1].x, y2 = flag_coords[1].y
                 let x3 = coords.x,         y3 = coords.y
                 // Horizontal or vertical lines
-                // if (((x1 == x2) && (x2 == x3)) || 
-                //     ((y1 == y2) && (y2 == y3)))
-                //     continue
+                if (((x1 == x2) && (x2 == x3)) || 
+                    ((y1 == y2) && (y2 == y3)))
+                    continue
 
-                // // Three point on angled line
-                // const eps = 0.0001
-                // if (Math.abs((y3-y1)/(y2-y1) - (x3-x1)/(x2-x1)) < eps){
-                //     console.log('Skipped same line', x1, x2, x3, y1, y2, y3)
-                // continue
-                // }
+                // Three point on angled line
+                const eps = 0.0001
+                if (Math.abs((y3-y1)/(y2-y1) - (x3-x1)/(x2-x1)) < eps) {
+                    console.log('Skipped same line', x1, x2, x3, y1, y2, y3)
+                    continue
+                }
             }                
             if (flag_coords.length == 3) 
                 break
@@ -104,8 +105,8 @@ class Agent {
         this.flag_coords = flag_coords 
         this.x = res['x']
         this.y = res['y']
-        if (this.is_player)
-            console.log(`My coords: x=${this.x}, y=${this.y}`)
+        if (this.is_player&& this.x && this.y)
+            console.log(`My coords: x=${this.x.toFixed(2)}, y=${this.y.toFixed(2)}`)
         for (let obj of p) {
             if (typeof(obj) !== 'object') 
                 continue
@@ -115,7 +116,7 @@ class Agent {
             }
             let enemy_dist = obj.p[0], enemy_angle = obj.p[1]           
 
-            enemy_angle = this.DirectionOfSpeed + this.head_angle - enemy_angle 
+            enemy_angle = enemy_angle - this.DirectionOfSpeed + this.head_angle 
             let enemy_angle_rad = enemy_angle * Math.PI / 180
 
             let x = this.x, y = this.y
@@ -123,7 +124,7 @@ class Agent {
             let y_e = y + Math.sin(enemy_angle_rad) * enemy_dist
             if (this.is_player) {
                 console.log(`I see enemy: dist=${enemy_dist}, angle=${enemy_angle}`)
-                console.log(`Enemy position: x=${x_e}, y=${y_e}`)
+                console.log(`Enemy position: x=${(x_e.toFixed(2))}, y=${y_e.toFixed(2)}`)
                 console.log()
             }
         }   
