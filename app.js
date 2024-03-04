@@ -1,82 +1,73 @@
     const Agent = require('./agent'); // Импорт агента
     const VERSION = 7; // Версия сервера
+    const Controller = require('./controller')
     let teamName = "teamA"; // ИМЯ команды
     let enemyTeamName = "teamB";
     let agents = []
 
     let agent = new Agent()
-    let enemy = new Agent()
+    // let enemy = new Agent()
     // const AGENTS_NUM = 9
     // for (let i=0; i < AGENTS_NUM;++i) agents.push(new Agent()); // Создание экземпляра агента
 
     let socket = require('./socket')
     // for (let i=0; i < AGENTS_NUM;++i) socket(agents[i], teamName, VERSION) //Настройка сокета
     socket(agent, teamName, VERSION) 
-    socket(enemy, enemyTeamName, VERSION) 
+    // socket(enemy, enemyTeamName, VERSION) 
 
     function sleep(ms) {
         return new Promise(resolve => setTimeout(resolve, ms));
     }
     let time = 1000
 
-
-    // function check_for_errors(true_coords, comp_coords) {
-    //     x_t = true_coords[0]
-    //     y_t = true_coords[1]
-    //     x_p = comp_coords[0]
-    //     y_p = comp_coords[1]
-
-    //     if (Math.abs(x_t - x_p) > 10) {
-    //         return false
-    //     }
-    //     if (Math.abs(y_t - y_p) > 10) {
-    //         return false
-    //     }
-    //     return true
-    // }
-
     agent.is_player = true;
+    agent.socketSend("move", "-15 10")
+    // enemy.socketSend("move", "-50 0")
 
-    async function moveCircle(){
-        agent.socketSend("move", "-15 10")
-        await sleep(1000)
-        enemy.socketSend("move", "-15 10")
-        await sleep(1000)
+    sleep(time)
+    let controller = new Controller()
 
-        while(true){
-            agent.socketSend("turn", `-15`)
-            await sleep(time)
-            console.log()
+    async function run() {
+        let actions_done = [false, false, false]
+        console.log(actions_done)
+        while(true) {
+            await sleep(100)
+            if (!actions_done[0]) {
+                res = controller.moveToFlag(agent, 'b', agent.see)
+                if (res) actions_done[0] = true;
+            }
+            if (!actions_done[1]) {
+                res = controller.moveToFlag(agent, 'fc', agent.see)
+                if (res) actions_done[1] = true;
+            }
+            if (!actions_done[2]) {
+                if (!agent.see) continue;
+                res = controller.makeGoal(agent, 'gr', agent.see)
+                // if (res) actions_done[2] = true;
+            }
+            if (actions_done[2]) {
+                actions_done = [false] * 3
+            }
         }
     }
     
-    moveCircle()
+    run()
+    
+    // async function runAndGoal(){
+        
+    //     agent.socketSend("move", "-15 10")
+    //     await sleep(1000)
+    //     enemy.socketSend("move", "-15 10")
+    //     agent.socketSend("turn", `-15`)
+    //     await sleep(1000)
 
-    // async function moveCircle(){
-    //     true_agent_coords = [
-    //         [-15, 0]
-    //         // [-15, 0], [-15, 15], [-15, -15],
-    //         // [-32, 0], [-32, 15], [-32, -15],
-    //         // [-50, 0], [-50, 15], [-50, -15]
-    //     ]
-    //     for (let i=0; i < AGENTS_NUM;++i)
-    //         agents[i].socketSend("move", `${true_agent_coords[i][0]} ${-1 * true_agent_coords[i][1]}`) // Размещение игрока на поле
-
-    //     while(true){
-    //         for (let i=0; i < AGENTS_NUM;++i)
-    //             agents[i].socketSend("turn", `15`)
+    //     while(true) {
+    //         agent.socketSend("turn", `-15`)
     //         await sleep(time)
-    //         for (let i=0; i < AGENTS_NUM;++i){
-    //             res = check_for_errors(true_agent_coords[i], [agents[i].x, agents[i].y])
-    //             if (!res) {
-    //                 console.log(true_agent_coords[i], [agents[i]['x'], agents[i]['y']], agents[i].flag_coords)
-    //             }
-    //         }
-    //         for (let i=0; i < AGENTS_NUM; ++i)
-    //             agents[i].socketSend("dash", '100')
-    //         // agent.socketSend("dash", '100')
-    //         // await sleep(time)
+    //         console.log()
     //     }
     // }
+    
 
     // moveCircle()
+

@@ -1,7 +1,16 @@
 class Controller {
+    constructor() {
+        this.flag_max_dist = 3
+        this.ball_max_dist = 0.5
+        this.min_turn_angle = 5
+    }
     moveToFlag(agent, flag, see) {
         let flag_obj = null
         // check agent can see the needed flag
+        if (typeof(see) != 'object') {
+            this.turnAgent(agent, 15)
+            return false;
+        }
         for (let obj of see) {
             if (typeof(obj) !== 'object') 
                 continue
@@ -11,9 +20,10 @@ class Controller {
                 break
             }
         }
-        if (flag_obj) 
+        if (flag_obj) {
             return this.moveAgentToObj(agent, flag_obj, this.flag_max_dist)
-        this.turnAgent(agent, 45)
+        }
+        this.turnAgent(agent, 15)
         return false
     }
 
@@ -23,7 +33,7 @@ class Controller {
             if (typeof(obj) !== 'object') 
                 continue
             let name = obj.cmd.p.join('')
-            if (name === flag)
+            if (name === flag && obj.p[0] < 50)
                 flag_obj = obj
             if (name[0] === 'b')
                 ball = obj
@@ -31,18 +41,18 @@ class Controller {
                 break
         }
         if (!ball) {
-            this.turnAgent(agent, 45)
+            this.turnAgent(agent, 15)
             return false
         }
         if (!this.moveAgentToObj(agent, ball, this.ball_max_dist))
             return false
         if (!flag_obj) {
-            this.kickBall(agent, 10, 45)
+            this.kickBall(agent, 20, 45)
             return false
         }
 
-        const flag_angle = flag.p[1]
-        this.kickBall(agent, 100, flag_angle)
+        const flag_angle = flag_obj.p[1]
+        this.kickBall(agent, 1000, flag_angle)
         return false
     }
 
@@ -63,16 +73,18 @@ class Controller {
 
     turnAgent(agent, angle) {
         agent.act = {n: "turn", v: angle}
+        agent.socketSend("turn", angle)
     }
 
     runAgent(agent, power) {
         agent.act = {n: "dash", v: power}
+        agent.socketSend("dash", power)
     }
 
     kickBall(agent, power, angle) {
-        agent.act = {n: "kick", v: power + ' ' + angle}
+        // agent.act = {n: "kick", v: power + ' ' + angle}
+        agent.socketSend("kick", `${power} ${angle}`)
     }
-    flag_max_dist = 3
-    ball_max_dist = 0.5
-    min_turn_angle = 5
 }
+
+module.exports = Controller // Экспорт игрока

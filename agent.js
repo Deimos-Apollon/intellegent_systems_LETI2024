@@ -59,6 +59,7 @@ class Agent {
         // console.log(p)
         if(cmd == "see") {
             // console.log(p[1])
+            this.see = p
             this.processCmdSee(p)
         }
         if(cmd == "sense_body") {
@@ -89,7 +90,7 @@ class Agent {
                 // Three point on angled line
                 const eps = 0.0001
                 if (Math.abs((y3-y1)/(y2-y1) - (x3-x1)/(x2-x1)) < eps) {
-                    console.log('Skipped same line', x1, x2, x3, y1, y2, y3)
+                    // console.log('Skipped same line', x1, x2, x3, y1, y2, y3)
                     continue
                 }
             }                
@@ -103,10 +104,16 @@ class Agent {
         res = getPos3Flags(flag_coords, flag_dists)
 
         this.flag_coords = flag_coords 
-        this.x = res['x']
-        this.y = res['y']
-        if (this.is_player&& this.x && this.y)
-            console.log(`My coords: x=${this.x.toFixed(2)}, y=${this.y.toFixed(2)}`)
+        if (res['x'] && res['y']) {
+            this.x = res['x']
+            this.y = res['y']
+        }
+        if (this.is_player) {
+            //console.log(`My coords: x=${this.x.toFixed(2)}, y=${this.y.toFixed(2)}`)
+            res = getPos3Flags(flag_coords, flag_dists)
+            // console.log('res', res)
+            // console.log('flags', flag_coords)
+        }
         for (let obj of p) {
             if (typeof(obj) !== 'object') 
                 continue
@@ -123,9 +130,9 @@ class Agent {
             let x_e = x + Math.cos(enemy_angle_rad) * enemy_dist
             let y_e = y + Math.sin(enemy_angle_rad) * enemy_dist
             if (this.is_player) {
-                console.log(`I see enemy: dist=${enemy_dist}, angle=${enemy_angle}`)
-                console.log(`Enemy position: x=${(x_e.toFixed(2))}, y=${y_e.toFixed(2)}`)
-                console.log()
+                //console.log(`I see enemy: dist=${enemy_dist}, angle=${enemy_angle}`)
+                //console.log(`Enemy position: x=${(x_e.toFixed(2))}, y=${y_e.toFixed(2)}`)
+                //console.log()
             }
         }   
     }
