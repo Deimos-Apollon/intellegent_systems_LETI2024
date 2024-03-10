@@ -51,14 +51,7 @@ class Agent {
         if(p[1]) this.id = p[1] // id игрока
     }
     analyzeEnv(msg, cmd, p){ // Анализ сообщения
-        // console.log("Message: \n")
-        // console.log(msg)
-        // console.log("Cmd: \n")
-        // console.log(cmd)
-        // console.log("p: \n")
-        // console.log(p)
         if(cmd == "see") {
-            // console.log(p[1])
             this.see = p
             this.processCmdSee(p)
         }
@@ -109,10 +102,7 @@ class Agent {
             this.y = res['y']
         }
         if (this.is_player) {
-            //console.log(`My coords: x=${this.x.toFixed(2)}, y=${this.y.toFixed(2)}`)
             res = getPos3Flags(flag_coords, flag_dists)
-            // console.log('res', res)
-            // console.log('flags', flag_coords)
         }
         for (let obj of p) {
             if (typeof(obj) !== 'object') 
@@ -123,7 +113,7 @@ class Agent {
             }
             let enemy_dist = obj.p[0], enemy_angle = obj.p[1]           
 
-            enemy_angle = enemy_angle - this.DirectionOfSpeed + this.head_angle 
+            enemy_angle = enemy_angle - this.DirectionOfSpeed + this.head_angle // added this by guess
             let enemy_angle_rad = enemy_angle * Math.PI / 180
 
             let x = this.x, y = this.y
@@ -137,7 +127,6 @@ class Agent {
         }   
     }
     processCmdSenseBody(p) {
-        this.turn = 0
         for (let obj of p) {
             if (obj.cmd == 'head_angle') {
                 this.head_angle = obj.p[0]
@@ -150,10 +139,7 @@ class Agent {
     sendCmd(){
         if(this.run){ // Игра начата 
             if(this.act){ // Есть команда от игрока
-                if(this.act.n == "kick") // Пнуть мяч
-                    this.socketSend(this.act.n, this.act.v + " 0")
-                else // Движение и поворот
-                    this.socketSend(this.act.n, this.act.v)
+                this.socketSend(this.act.n, this.act.v)
             }
             this.act = null // Сброс команды
         }

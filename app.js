@@ -28,26 +28,25 @@
     let controller = new Controller()
 
     async function run() {
-        let actions_done = [false, false, false]
-        console.log(actions_done)
+        actions = [{act: "moveToFlag", fl: "b"}, {act: "kick", fl: "gr"}]
+        let current_action_index = 0
+
         while(true) {
             await sleep(100)
-            if (!actions_done[0]) {
-                res = controller.moveToFlag(agent, 'b', agent.see)
-                if (res) actions_done[0] = true;
+            let curr_act = actions[current_action_index]
+            let res = false;
+            switch (curr_act.act) {
+                case "moveToFlag": {
+                    res = controller.moveToFlag(agent, curr_act.fl, agent.see);
+                    break
+                }
+                case "kick": {
+                    res = controller.makeGoal(agent, curr_act.fl, agent.see);
+                    break
+                }
             }
-            if (!actions_done[1]) {
-                res = controller.moveToFlag(agent, 'fc', agent.see)
-                if (res) actions_done[1] = true;
-            }
-            if (!actions_done[2]) {
-                if (!agent.see) continue;
-                res = controller.makeGoal(agent, 'gr', agent.see)
-                // if (res) actions_done[2] = true;
-            }
-            if (actions_done[2]) {
-                actions_done = [false] * 3
-            }
+
+            if (res) current_action_index = (current_action_index < actions.length-1) ? current_action_index+1 : 0;
         }
     }
     

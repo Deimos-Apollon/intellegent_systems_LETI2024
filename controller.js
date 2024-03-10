@@ -2,7 +2,7 @@ class Controller {
     constructor() {
         this.flag_max_dist = 3
         this.ball_max_dist = 0.5
-        this.min_turn_angle = 5
+        this.min_turn_angle = 30
     }
     moveToFlag(agent, flag, see) {
         let flag_obj = null
@@ -33,26 +33,28 @@ class Controller {
             if (typeof(obj) !== 'object') 
                 continue
             let name = obj.cmd.p.join('')
-            if (name === flag && obj.p[0] < 50)
+            if (name === flag && obj.p[0] < 1000) {
                 flag_obj = obj
+            }
             if (name[0] === 'b')
                 ball = obj
             if (ball && flag_obj)
                 break
         }
         if (!ball) {
-            this.turnAgent(agent, 15)
+            this.turnAgent(agent, 30)
             return false
         }
         if (!this.moveAgentToObj(agent, ball, this.ball_max_dist))
             return false
         if (!flag_obj) {
-            this.kickBall(agent, 20, 45)
+            //const agent_angle = agent.DirectionOfSpeed
+            this.kickBall(agent, 10, 45)
             return false
         }
 
         const flag_angle = flag_obj.p[1]
-        this.kickBall(agent, 1000, flag_angle)
+        this.kickBall(agent, 100, flag_angle)
         return false
     }
 
@@ -67,23 +69,23 @@ class Controller {
         }
         // run slower if its not too far
         // check if it is acceleration or absolute speed
-        this.runAgent(agent, obj_dist > 10 ? 50 : 30)
+        if (obj_dist > 10) this.runAgent(agent, 100)
+        else if (obj_dist > 5) this.runAgent(agent, 70)
+        else if (obj_dist > 3) this.runAgent(agent, 50)
+        else  this.runAgent(agent, 25)
         return false
     }
 
     turnAgent(agent, angle) {
         agent.act = {n: "turn", v: angle}
-        agent.socketSend("turn", angle)
     }
 
     runAgent(agent, power) {
         agent.act = {n: "dash", v: power}
-        agent.socketSend("dash", power)
     }
 
     kickBall(agent, power, angle) {
-        // agent.act = {n: "kick", v: power + ' ' + angle}
-        agent.socketSend("kick", `${power} ${angle}`)
+        agent.act = {n: "kick", v: power + ' ' + angle}
     }
 }
 
