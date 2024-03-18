@@ -5,8 +5,6 @@ console.log(args)
 let teamName = 'teamA' // Имя команды
 const Manager = require('./manager')
 
-const state = require('./decisionTree')
-
 var createAgent = function createAgent(teamName, pos1, pos2, turn, pose){
     let agent1 = new Agent(teamName, new Manager(), pos1, pos2, pose) // Создание экземпляра агента
     require('./socket')(agent1, teamName, VERSION) // Настройка сокета
@@ -18,7 +16,7 @@ var createAgent = function createAgent(teamName, pos1, pos2, turn, pose){
       }, 20);
 }
 
-createAgent(teamName, '-10','0', 1, "middle")
-createAgent(teamName, '-17','-7', 1, "left")
-createAgent(teamName, '-17','7', 1, "right")
+createAgent(teamName, '-15','0', 1, "left")
+createAgent(teamName, '-5','10', 1, "right")
 createAgent("teamB", '-50','0', 1, "goalie")
+createAgent("teamB", '-52.5','7', 1, "goalie")

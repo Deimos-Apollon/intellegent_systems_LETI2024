@@ -8,10 +8,12 @@ class Manager {
         this.curDash = 0
         this.lead = false
         this.notLead = false
+        this.cmd = ''
     }
 
-    getAction(mgr, dt, p) {
+    getAction(mgr, dt, p, cmd) {
         this.p = p
+        this.cmd = cmd
         function execute(dt, title){
             const action = dt[title]
             if(typeof action.exec == "function"){
@@ -84,6 +86,13 @@ class Manager {
         }
         return null
 
+    }
+
+    hear(info) {
+        if ((this.cmd.info.indexOf(info)+1)) {
+            return true
+        }
+        return false
     }
 
     visibleObjectsCount(fl) {
@@ -162,6 +171,7 @@ class Manager {
                    return this.p[i];
             }
         }
+        return false;
     }
 }
 

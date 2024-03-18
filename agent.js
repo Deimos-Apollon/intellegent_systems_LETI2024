@@ -22,6 +22,7 @@ class Agent {
     this.turn_moment = 0
     this.coords = {x: NaN, y: NaN}
     this.teamName = teamName
+    this.cmd = ''
   }
 
   msgGot (msg) {
@@ -48,6 +49,7 @@ class Agent {
     // Первое (hear) - начало игры
     if (data.cmd == 'hear') {
       this.run = true
+      console.log(data.p[2])
       if(data.p[2] == 'play_on') {
         this.play_on = true
       } else if(data.p[2] == 'kick_off_l'){
@@ -72,15 +74,15 @@ class Agent {
     if (p[1]) this.id = p[1] // id игрока
     if (this.teamName === 'teamA') {
       switch (this.pose) {
-          case "middle": this.tree = DT.DT_pride;
+          case "left": this.tree = DT_TeamA1;
                   break;
-          case "left": this.tree = DT.DT_pride_2;
+          case "right": this.tree = DT_TeamA2;
                   break;
-          case "right":this.tree = DT.DT_pride_3;
+          case "goalie":this.tree = DT_TeamB;
       }
-  } else {
-      this.tree = DT.DT_goalie;
-  }
+    } else {
+      this.tree = DT_TeamB;
+    }
   }
 
   bestPos(flgs, p) {
@@ -138,6 +140,8 @@ class Agent {
             if(!isNaN(coords_enemy.x) && !isNaN(coords_enemy.y)){
               sum.x += coords_enemy.x;
               sum.y += coords_enemy.y;
+              pairs_countords_enemy.x;
+              sum.y += coords_enemy.y;
               pairs_count += 1;
             }
           }
@@ -153,10 +157,6 @@ class Agent {
 
   analyzeEnv (msg, cmd, p) {
     // Анализ сообщения
-    if (this.play_on == true) {
-      //this.socketSend('turn', this.turn_moment)
-    }
-
     if (cmd == 'see') {
       let counter = 0
       let flgs = []
@@ -175,21 +175,14 @@ class Agent {
       flgs.push(p_idx)
       if (this.play_on == true) {
       //  this.controller.run(flgs,p,ball_idx)
-        this.act = this.manager.getAction(this.manager, this.tree, p)
+        this.act = this.manager.getAction(this.manager, this.tree, p, this.cmd)
         this.sendCmd()
         //managerFunc.getAction(this.manager, this.DT, p)
         //this.manager.getAction(this.DT, p)
-      } else {
-
-      }
-      
-      
-
-      //console.log('my: ', this.coords)
-
-      // let coords_other = this.bestObjPos(flgs, this.coords, p)
-      // console.log("enemy: ", coords_other)
-
+      } 
+    } else if(cmd == 'hear'){
+      p.splice(0, 1)
+      this.cmd = {cmd: "hear", source: p[0], info: p[1]}
     }
   }
 
