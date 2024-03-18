@@ -74,14 +74,14 @@ class Agent {
     if (p[1]) this.id = p[1] // id игрока
     if (this.teamName === 'teamA') {
       switch (this.pose) {
-          case "left": this.tree = DT_TeamA1;
+          case "left": this.tree = DT.DT_TeamA1;
                   break;
-          case "right": this.tree = DT_TeamA2;
+          case "right": this.tree = DT.DT_TeamA2;
                   break;
-          case "goalie":this.tree = DT_TeamB;
+          case "goalie":this.tree = DT.DT_TeamB;
       }
     } else {
-      this.tree = DT_TeamB;
+      this.tree = DT.DT_TeamB;
     }
   }
 
