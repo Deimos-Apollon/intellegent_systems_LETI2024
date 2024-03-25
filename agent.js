@@ -1,150 +1,207 @@
 const Msg = require('./msg')
-// Подключение модуля разбора сообщений от сервера
 const readline = require('readline')
+const pos = require('./pos')
 const flags = require('./flags')
-const getPos3Flags = require('./utils')
+const Controller = require('./controller')
+const DT = require('./decisionTree')
+const FL = "flag"
+const KI = "kick"
 
-// Подключение модуля ввода из командной строки
+
 class Agent {
-    constructor() {
-        this.position = "l" // По умолчанию левая половина поля
-        this.run = false // Игра начата
-        this.act = null // Действия
-        this.rl = readline.createInterface({ // Чтение консоли
-            input: process.stdin,
-            output: process.stdout
-        })
-        this.rl.on('line', (input) => {  // Обработка строки из консоли
-            if(this.run) { // Если игра начата
-        // ДВижения вперед, вправо, влево, удар по мячу
-                if("w" == input) this.act = {n: "dash", v: 100}
-                if("d" == input) this.act = {n: "turn", v: 20}
-                if("a" == input) this.act = {n: "turn", v: -20}
-                if("s" == input) this.act = {n: "kick", v: 100}
-        }
-        })
-        this.x_comp = 0;
-        this.y_comp = 0;
-        this.x = 0, this.y = 0;
-    }
-    msgGot(msg) { // Получение сообщения
-        let data = msg.toString('utf8') // ПРиведение
-        this.processMsg(data) // Разбор сообщения
-        this.sendCmd() // Отправка команды
-    }
-    setSocket(socket) { // Настройка сокета
-        this.socket = socket
-    }
-    socketSend(cmd, value) { // Отправка команды
-        this.socket.sendMsg(`(${cmd} ${value})`)
-    }
-    processMsg(msg){ // Обработка сообщения
-        let data = Msg.parseMsg(msg) // Разборр сообщения
-        if (!data) throw new Error("Parse error\n" + msg)
-        // Первое (hear) - начало игры
-        if (data.cmd == "hear") this.run = true
-        if (data.cmd == "init") this.initAgent(data.p) // Инициализация 
-        this.analyzeEnv(data.msg, data.cmd, data.p) // Обработка
-    }
-    initAgent(p){
-        if(p[0] == "r") this.position = "r" // Правая половина поля 
-        if(p[1]) this.id = p[1] // id игрока
-    }
-    analyzeEnv(msg, cmd, p){ // Анализ сообщения
-        if(cmd == "see") {
-            this.see = p
-            this.processCmdSee(p)
-        }
-        if(cmd == "sense_body") {
-            this.processCmdSenseBody(p)
-        }
-    }
-    processCmdSee(p) {
-        let flag_coords = [], flag_dists = []
-        for (let obj of p) {
-            if (typeof(obj) !== 'object') 
-                continue
-            let name = obj.cmd.p.join('')
-            if (name[0] !== 'f') {
-                continue
-            }
-            let coords = flags[name]
+  constructor (teamName,manager, init_x, init_y, pose) {
+    this.manager = manager
+    this.pose = pose
+    this.init_x = init_x
+    this.init_y = init_y
+    this.position = 'l' // По умолчанию - левая половина поля
+    this.other = 'r'
+    this.run = false // Игра начата
+    this.act = null // Действия
+    this.play_on = false
+    this.turn_moment = 0
+    this.coords = {x: NaN, y: NaN}
+    this.teamName = teamName
+    this.cmd = ''
+  }
 
-            if (flag_coords.length == 2) 
-            {
-                let x1 = flag_coords[0].x, y1 = flag_coords[0].y
-                let x2 = flag_coords[1].x, y2 = flag_coords[1].y
-                let x3 = coords.x,         y3 = coords.y
-                // Horizontal or vertical lines
-                if (((x1 == x2) && (x2 == x3)) || 
-                    ((y1 == y2) && (y2 == y3)))
-                    continue
+  msgGot (msg) {
+    // Получение сообщения
+    let data = msg.toString('utf8') // Приведение к строке
+    this.processMsg(data) // Разбор сообщения
+    this.sendCmd() // Отправка команды
+  }
 
-                // Three point on angled line
-                const eps = 0.0001
-                if (Math.abs((y3-y1)/(y2-y1) - (x3-x1)/(x2-x1)) < eps) {
-                    // console.log('Skipped same line', x1, x2, x3, y1, y2, y3)
-                    continue
-                }
-            }                
-            if (flag_coords.length == 3) 
-                break
-            flag_coords.push(coords)
-            flag_dists.push(obj.p[0])
-        }
+  setSocket (socket) {
+    // Настройка сокета
+    this.socket = socket
+  }
 
-        if (flag_coords.length < 3) return false;
-        res = getPos3Flags(flag_coords, flag_dists)
+  socketSend (cmd, value) {
+    // Отправка команды
+    this.socket.sendMsg(`(${cmd} ${value})`)
+  }
 
-        this.flag_coords = flag_coords 
-        if (res['x'] && res['y']) {
-            this.x = res['x']
-            this.y = res['y']
-        }
-        if (this.is_player) {
-            res = getPos3Flags(flag_coords, flag_dists)
-        }
-        for (let obj of p) {
-            if (typeof(obj) !== 'object') 
-                continue
-            let name = obj.cmd.p.join('')
-            if (name[0] !== 'p') {
-                continue
-            }
-            let enemy_dist = obj.p[0], enemy_angle = obj.p[1]           
+  processMsg (msg) {
+    // Обработка сообщения
+    let data = Msg.parseMsg(msg)
+    if (!data) throw new Error('Parse error\n' + msg)
+    // Первое (hear) - начало игры
+    if (data.cmd == 'hear') {
+      this.run = true
+      console.log(data.p[2])
+      if(data.p[2] == 'play_on') {
+        this.play_on = true
+      } else if(data.p[2] == 'kick_off_l'){
+          //this.socketSend('kick', '60 0')
+          return
+        } else if(data.p[2].startsWith('goal_l')){
+            this.socketSend('move', this.init_x + ' ' + this.init_y)
+          } else if(data.p[2].startsWith('drop_ball')){
+           // this.controller.refresh()
+          }
+      }
+    
+    if (data.cmd == 'init') this.initAgent(data.p)
+    this.analyzeEnv(data.msg, data.cmd, data.p)
+  }
 
-            enemy_angle = enemy_angle - this.DirectionOfSpeed + this.head_angle // added this by guess
-            let enemy_angle_rad = enemy_angle * Math.PI / 180
-
-            let x = this.x, y = this.y
-            let x_e = x + Math.cos(enemy_angle_rad) * enemy_dist
-            let y_e = y + Math.sin(enemy_angle_rad) * enemy_dist
-            if (this.is_player) {
-                //console.log(`I see enemy: dist=${enemy_dist}, angle=${enemy_angle}`)
-                //console.log(`Enemy position: x=${(x_e.toFixed(2))}, y=${y_e.toFixed(2)}`)
-                //console.log()
-            }
-        }   
+  initAgent (p) {
+    if (p[0] == 'r') {
+      this.position = 'r'
+      this.other = 'l'
+    } // Правая половина поля
+    if (p[1]) this.id = p[1] // id игрока
+    if (this.teamName === 'teamA') {
+      switch (this.pose) {
+          case "left": this.tree = DT.DT_TeamA1;
+                  break;
+          case "right": this.tree = DT.DT_TeamA2;
+                  break;
+          case "goalie":this.tree = DT.DT_TeamB;
+      }
+    } else {
+      this.tree = DT.DT_TeamB;
     }
-    processCmdSenseBody(p) {
-        for (let obj of p) {
-            if (obj.cmd == 'head_angle') {
-                this.head_angle = obj.p[0]
-            }
-            if (obj.cmd == 'speed') {
-                this.DirectionOfSpeed = obj.p[1]
-            }
+  }
+
+  bestPos(flgs, p) {
+    let pairs_count = 0
+    let sum = {x: 0, y: 0};
+    
+    for(let i = 0; i < flgs.length-2; i++){
+      for(let j = i+1; j < flgs.length-1; j++){
+        for(let k = j+1; k < flgs.length; k++){
+          let f1 = p[flgs[i]]['cmd']['p'].join('')
+          let d1 = p[flgs[i]]['p'][0]
+          let alpha1 = p[flgs[i]]['p'][1]
+          let f2 = p[flgs[j]]['cmd']['p'].join('')
+          let d2 = p[flgs[j]]['p'][0]
+          let alpha2 = p[flgs[j]]['p'][1]
+          let f3 = p[flgs[k]]['cmd']['p'].join('')
+          let d3 = p[flgs[k]]['p'][0]
+          let coords = pos.twothreeFlags(flags[f1], d1, flags[f2], d2, flags[f3], d3)
+          if(!isNaN(coords.x) && !isNaN(coords.y)){
+            sum.x += coords.x;
+            sum.y += coords.y;
+            pairs_count += 1;
+          }
         }
+      }
     }
-    sendCmd(){
-        if(this.run){ // Игра начата 
-            if(this.act){ // Есть команда от игрока
-                this.socketSend(this.act.n, this.act.v)
+    sum.x /= pairs_count
+    sum.y /= pairs_count
+    return sum
+  }
+
+  bestObjPos(flgs, coords, p){
+    let res = []
+    // iterate all people at view
+    for (let m = 1; m < p.length; m++) {
+      if (
+        p[m]['cmd']['p'][0] == 'p' &&
+        p[m]['cmd']['p'][1] != this.teamName
+      ){
+        let p_d = p[m]['p'][0]
+        let p_alpha = p[m]['p'][1]
+        let pairs_count = 0
+        let sum = {x: 0, y: 0};
+        // find coords of each
+        for(let i = 0; i < flgs.length-1; i++){
+          for(let j = i+1; j < flgs.length; j++){
+            let f1 = p[flgs[i]]['cmd']['p'].join('')
+            let d1 = p[flgs[i]]['p'][0]
+            let alpha1 = p[flgs[i]]['p'][1]
+            let f2 = p[flgs[j]]['cmd']['p'].join('')
+            let d2 = p[flgs[j]]['p'][0]
+            let alpha2 = p[flgs[j]]['p'][1]
+
+            let coords_enemy = pos.getObjPos(coords, flags[f1], d1, alpha1, flags[f2], d2, alpha2, p_d, p_alpha)
+            if(!isNaN(coords_enemy.x) && !isNaN(coords_enemy.y)){
+              sum.x += coords_enemy.x;
+              sum.y += coords_enemy.y;
+              pairs_countords_enemy.x;
+              sum.y += coords_enemy.y;
+              pairs_count += 1;
             }
-            this.act = null // Сброс команды
+          }
         }
+        sum.x /= pairs_count
+        sum.y /= pairs_count
+        res.push(sum)
+      }
     }
+    return res
+  }
+
+
+  analyzeEnv (msg, cmd, p) {
+    // Анализ сообщения
+    if (cmd == 'see') {
+      let counter = 0
+      let flgs = []
+      let ball_idx = -1
+      let p_idx = -1
+      for (let i = 1; i < p.length; i++) {
+        if (p[i]['cmd']['p'][0] === 'f') {
+          flgs.push(i)
+        } else if(p[i]['cmd']['p'][0] === 'b'){
+          ball_idx = i
+        } else if(p[i]['cmd']['p'][0] === 'p'){
+          p_idx = i
+        }
+      }
+      this.coords = this.bestPos(flgs, p)
+      flgs.push(p_idx)
+      if (this.play_on == true) {
+      //  this.controller.run(flgs,p,ball_idx)
+        this.act = this.manager.getAction(this.manager, this.tree, p, this.cmd)
+        this.sendCmd()
+        //managerFunc.getAction(this.manager, this.DT, p)
+        //this.manager.getAction(this.DT, p)
+      } 
+    } else if(cmd == 'hear'){
+      p.splice(0, 1)
+      this.cmd = {cmd: "hear", source: p[0], info: p[1]}
+    }
+  }
+
+  sendCmd () {
+    if (this.run) {
+      // Игра начата
+      if (this.act) {
+        // Есть команда от игрока
+        if (this.act.n == 'kick') {
+          // Пнуть мяч
+          this.socketSend(this.act.n, this.act.v)
+        } else {
+          // Движение и поворот
+          this.socketSend(this.act.n, this.act.v)
+        }
+      }
+      this.act = null // Сброс команды
+    }
+  }
 }
-
 
 module.exports = Agent // Экспорт игрока

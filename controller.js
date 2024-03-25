@@ -1,14 +1,15 @@
 class Controller {
     constructor() {
         this.flag_max_dist = 3
-        this.ball_max_dist = 0.5
+        this.ball_max_dist = 1
         this.min_turn_angle = 30
+        this.default_turn_angle = 30
     }
     moveToFlag(agent, flag, see) {
         let flag_obj = null
         // check agent can see the needed flag
         if (typeof(see) != 'object') {
-            this.turnAgent(agent, 15)
+            this.turnAgent(agent, this.default_turn_angle)
             return false;
         }
         for (let obj of see) {
@@ -23,7 +24,7 @@ class Controller {
         if (flag_obj) {
             return this.moveAgentToObj(agent, flag_obj, this.flag_max_dist)
         }
-        this.turnAgent(agent, 15)
+        this.turnAgent(agent, this.default_turn_angle)
         return false
     }
 
@@ -42,7 +43,7 @@ class Controller {
                 break
         }
         if (!ball) {
-            this.turnAgent(agent, 30)
+            this.turnAgent(agent, this.default_turn_angle)
             return false
         }
         if (!this.moveAgentToObj(agent, ball, this.ball_max_dist))
