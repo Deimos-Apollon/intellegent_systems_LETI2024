@@ -23,10 +23,10 @@ module.exports = {
     let x2 = pos_f1.x + Math.sqrt(d1 ** 2 - (y2 - pos_f1.y) ** 2)
     let x3 = pos_f1.x - Math.sqrt(d1 ** 2 - (y1 - pos_f1.y) ** 2)
     let x4 = pos_f1.x - Math.sqrt(d1 ** 2 - (y2 - pos_f1.y) ** 2)
-    // console.log('y1: ', y1, ' x1: ', x1)
-    // console.log('y1: ', y1, ' x3: ', x3)
-    // console.log('y2: ', y2, ' x2: ', x2)
-    // console.log('y2: ', y2, ' x4: ', x4)
+    // // console.log('y1: ', y1, ' x1: ', x1)
+    // // console.log('y1: ', y1, ' x3: ', x3)
+    // // console.log('y2: ', y2, ' x2: ', x2)
+    // // console.log('y2: ', y2, ' x4: ', x4)
     if (y1 <= 39 && y1 >= -39) {
       if (x1 <= 57.5 && x1 >= -57.5) {
         return { x: x1, y: y1 }
@@ -46,7 +46,7 @@ module.exports = {
     let f1 = flags[f1_str]
     let f2 = flags[f2_str]
     let f3 = flags[f3_str]
-    //console.log('ffs: ', f1, f2, f3)
+    //// console.log('ffs: ', f1, f2, f3)
 
     let a1 = (f1.y - f2.y) / (f2.x - f1.x)
     let b1 =

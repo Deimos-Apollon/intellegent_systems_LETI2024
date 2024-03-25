@@ -1,12 +1,11 @@
 const Agent = require('./agent') // Импорт агента
 const VERSION = 7 // Версия сервера
 const args = process.argv;
-console.log(args)
+//// console.log(args)
 let teamName = 'teamA' // Имя команды
-const Manager = require('./manager')
 
 var createAgent = function createAgent(teamName, pos1, pos2, turn, pose){
-    let agent1 = new Agent(teamName, new Manager(), pos1, pos2, pose) // Создание экземпляра агента
+    let agent1 = new Agent(teamName, pos1, pos2, pose) // Создание экземпляра агента
     require('./socket')(agent1, teamName, VERSION) // Настройка сокета
     setTimeout(function() {
         agent1.socketSend('move', pos1 + ' ' + pos2) // Размещение игрока на поле
@@ -16,7 +15,34 @@ var createAgent = function createAgent(teamName, pos1, pos2, turn, pose){
       }, 20);
 }
 
-createAgent(teamName, '-15','0', 1, "left")
-createAgent(teamName, '-5','10', 1, "right")
+createAgent(teamName, '-0.5','0', 1, "forward")
+createAgent(teamName, '-5','-20', 1, "forward")
+createAgent(teamName, '-5','20', 1, "forward")
+
+createAgent(teamName, '-30','26', 1, "defender")
+createAgent(teamName, '-30','-26', 1, "defender")
+createAgent(teamName, '-34','8', 1, "defender")
+createAgent(teamName, '-34','-8', 1, "defender")
+
+createAgent(teamName, '-20','0', 1, "defender")
+createAgent(teamName, '-20','-20', 1, "defender")
+createAgent(teamName, '-20','20', 1, "defender")
+
+createAgent(teamName, '-50','0', 1, "goalie")
+
+
+createAgent("teamB", '-5','0', 1, "forward")
+createAgent("teamB", '-5','-20', 1, "forward")
+createAgent("teamB", '-5','20', 1, "forward")
+
+createAgent("teamB", '-30','26', 1, "defender")
+createAgent("teamB", '-30','-26', 1, "defender")
+createAgent("teamB", '-34','8', 1, "defender")
+createAgent("teamB", '-34','-8', 1, "defender")
+
+createAgent("teamB", '-20','0', 1, "defender")
+createAgent("teamB", '-20','-20', 1, "defender")
+createAgent("teamB", '-20','20', 1, "defender")
+
 createAgent("teamB", '-50','0', 1, "goalie")
-createAgent("teamB", '-52.5','7', 1, "goalie")
+
