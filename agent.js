@@ -7,6 +7,7 @@ const flags = require('./flags')
 const Controller = require('./Controller')
 const FL = "flag"
 const KI = "kick"
+const DT = require('./decisionTree')
 const Mgr = require('./manager')
 
 class Agent {
