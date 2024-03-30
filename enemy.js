@@ -1,11 +1,12 @@
 const Agent = require('./agent') // Импорт агента
 const VERSION = 7 // Версия сервера
-const args = process.argv;
-console.log(args)
-let teamName = 'teamA' // Имя команды
 
-var createAgent = function createAgent(teamName, pos1, pos2, turn, pose){
-    let agent1 = new Agent(teamName, pos1, pos2, pose) // Создание экземпляра агента
+const args = process.argv;
+
+let teamName = 'teamB' // Имя команды
+
+var createAgent = function createAgent(teamName, pos1, pos2, turn){
+    let agent1 = new Agent(teamName) // Создание экземпляра агента
     require('./socket')(agent1, teamName, VERSION) // Настройка сокета
     setTimeout(function() {
         agent1.socketSend('move', pos1 + ' ' + pos2) // Размещение игрока на поле
@@ -15,7 +16,6 @@ var createAgent = function createAgent(teamName, pos1, pos2, turn, pose){
       }, 20);
 }
 
-createAgent(teamName, '-10','0', 1, "left")
-createAgent("teamB", '-50','0', 1, "goalie")
-createAgent("teamB", '-52.5','7', 1, "nothing")
+createAgent(teamName, '-35','8',1)
+createAgent(teamName, '-35', '-8', 1)
 
