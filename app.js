@@ -1,48 +1,47 @@
-const Agent = require('./agent') // Импорт агента
-const VERSION = 7 // Версия сервера
-const args = process.argv;
-//// console.log(args)
-let teamName = 'teamA' // Имя команды
+const Agent = require('./agent')
+const socket = require('./socket')
 
-var createAgent = function createAgent(teamName, pos1, pos2, turn, pose){
-    let agent1 = new Agent(teamName, pos1, pos2, pose) // Создание экземпляра агента
-    require('./socket')(agent1, teamName, VERSION) // Настройка сокета
-    setTimeout(function() {
-        agent1.socketSend('move', pos1 + ' ' + pos2) // Размещение игрока на поле
-        agent1.turn_moment = turn
-        agent1.init_x = pos1
-        agent1.init_y = pos2
-      }, 20);
+teamA = 'CHE'
+teamB = 'EHC'
+
+coords = [
+    [-10, 0],
+    [-5, -5],
+    [-5, 5], 
+    [-25, -3], 
+    [-25, 3], 
+    [-25, -15],
+    [-25, 15], 
+    [-35, -25],
+    [-35, 0], 
+    [-35, 25]
+]
+
+// team1
+for (let i = 0; i < coords.length; ++i)
+{
+    let agent = new Agent(teamA, "unknown");
+    socket(agent.bridge)
+    agent.bridge.connect(teamA, 7, 'unknown')
+    agent.controls.Move(coords[i][0], coords[i][1]);
 }
-
-createAgent(teamName, '-0.5','0', 1, "forward")
-createAgent(teamName, '-5','-20', 1, "forward")
-createAgent(teamName, '-5','20', 1, "forward")
-
-createAgent(teamName, '-30','26', 1, "defender")
-createAgent(teamName, '-30','-26', 1, "defender")
-createAgent(teamName, '-34','8', 1, "defender")
-createAgent(teamName, '-34','-8', 1, "defender")
-
-createAgent(teamName, '-20','0', 1, "defender")
-createAgent(teamName, '-20','-20', 1, "defender")
-createAgent(teamName, '-20','20', 1, "defender")
-
-createAgent(teamName, '-50','0', 1, "goalie")
+// goalie 1
+let agent = new Agent(teamA, "goalie");
+socket(agent.bridge)
+agent.bridge.connect(teamA, 7, 'goalie')
+agent.controls.Move(-50, 0);
 
 
-createAgent("teamB", '-5','0', 1, "forward")
-createAgent("teamB", '-5','-20', 1, "forward")
-createAgent("teamB", '-5','20', 1, "forward")
-
-createAgent("teamB", '-30','26', 1, "defender")
-createAgent("teamB", '-30','-26', 1, "defender")
-createAgent("teamB", '-34','8', 1, "defender")
-createAgent("teamB", '-34','-8', 1, "defender")
-
-createAgent("teamB", '-20','0', 1, "defender")
-createAgent("teamB", '-20','-20', 1, "defender")
-createAgent("teamB", '-20','20', 1, "defender")
-
-createAgent("teamB", '-50','0', 1, "goalie")
-
+// team2
+for (let i = 0; i < coords.length; ++i)
+{
+    let agent = new Agent(teamB, "unknown");
+    socket(agent.bridge)
+    agent.bridge.connect(teamB, 7, 'unknown')
+    agent.controls.Move(coords[i][0], coords[i][1]);
+}
+// goalie 2
+let agent2 = new Agent(teamB, "goalie");
+socket(agent2.bridge)
+agent2.bridge.connect(teamB, 7, 'goalie')
+agent2.controls.Move(-50, 0);
